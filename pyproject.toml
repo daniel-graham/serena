@@ -45,10 +45,10 @@ dependencies = [
   "lsprotocol==2025.0.0",
   # Transitive deps pinned for security (dependabot alerts).
   # Exact pins because uvx installs from git, ignoring the lock file.
-  "urllib3==2.6.3",
+  "urllib3==2.7.0",
   "werkzeug==3.1.7",
-  "starlette==1.0.0",
-  "python-multipart==0.0.26",
+  "starlette==1.1.0",
+  "python-multipart==0.0.27",
   "filelock==3.25.2",
   "cryptography==46.0.7",
   "regex==2026.2.28",
