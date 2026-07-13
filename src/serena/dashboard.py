@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, Self
 
 import psutil
-from flask import Flask, Response, redirect, request, send_from_directory
+from flask import Flask, Response, abort, redirect, request, send_from_directory
 from PIL import Image
 from pydantic import BaseModel
 from sensai.util import logging
@@ -770,13 +770,27 @@ class SerenaDashboardAPI:
         raise RuntimeError(f"No free ports found starting from {start_port}")
 
     def run(self, host: str, port: int) -> int:
-        """
-        Runs the dashboard on the given host and port and returns the port number.
+        """Run dashboard with request-host validation.
+
+        Args:
+            host: Network interface address used by Flask.
+            port: TCP port used by Flask and accepted Host headers.
+
+        Returns:
+            Dashboard TCP port.
+
         """
         # patch flask.cli.show_server to avoid printing the server info
         from flask import cli
 
         cli.show_server_banner = lambda *args, **kwargs: None
+
+        @self._app.before_request
+        def check_host() -> None:
+            """Reject requests whose Host header can enable DNS rebinding."""
+            allowed = {f"127.0.0.1:{port}", f"localhost:{port}"}
+            if request.host not in allowed:
+                abort(403)
 
         self._app.run(host=host, port=port, debug=False, use_reloader=False, threaded=True)
         return port

@@ -47,3 +47,13 @@ def test_available_languages_exclude_project_languages():
     assert Language.MARKDOWN.value not in available
     # ensure experimental languages remain available for selection
     assert Language.ANSIBLE.value in available
+
+
+def test_dashboard_rejects_untrusted_host(monkeypatch):
+    dashboard = _make_dashboard(project_languages=None)
+    monkeypatch.setattr(dashboard._app, "run", lambda **_kwargs: None)
+
+    dashboard.run(host="127.0.0.1", port=24282)
+
+    response = dashboard._app.test_client().get("/", headers={"Host": "attacker.example"})
+    assert response.status_code == 403
